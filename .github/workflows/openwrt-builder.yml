@@ -79,14 +79,12 @@ jobs:
         sudo timedatectl set-timezone "$TZ"
         sudo mkdir -p /workdir
         sudo chown $USER:$GROUPS /workdir
-
     - name: Clone source code
       working-directory: /workdir
       run: |
         df -hT $PWD
         git clone $REPO_URL -b $REPO_BRANCH openwrt
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
-
     - name: Enable build ccache
       uses: klever1988/cachewrtbuild@main
       with:
@@ -111,43 +109,36 @@ jobs:
         git clone https://github.com/kenzok8/golang feeds/packages/lang/golang
         cd feeds/packages/lang/golang
         git checkout 3bb7214b2d1137d58f8103b37d1eae822df7c0df
-
     - name: Install feeds
       run: cd openwrt && ./scripts/feeds install -a
 
     - name: Upgrade some network software version
       run: |
         cd openwrt
-
         rm -rf feeds/packages/net/natmap
         wget -r --no-parent https://cdn.jsdelivr.net/gh/immortalwrt/packages@master/net/natmap/
         cp -rf cdn.jsdelivr.net/gh/immortalwrt/packages@master/net/natmap feeds/packages/net/natmap/
         rm -rf cdn.jsdelivr.net
         find feeds/packages/net/natmap -name index.html -exec rm {} \;
-
         rm -rf feeds/packages/net/smartdns
         wget -r --no-parent https://cdn.jsdelivr.net/gh/immortalwrt/packages@master/net/smartdns/
         cp -rf cdn.jsdelivr.net/gh/immortalwrt/packages@master/net/smartdns feeds/packages/net/smartdns/
         rm -rf cdn.jsdelivr.net
         find feeds/packages/net/smartdns -name index.html -exec rm {} \;
-
         rm -rf feeds/packages/net/ddns-go
         wget -r --no-parent https://cdn.jsdelivr.net/gh/immortalwrt/packages@master/net/ddns-go/
         cp -rf cdn.jsdelivr.net/gh/immortalwrt/packages@master/net/ddns-go feeds/packages/net/ddns-go/
         rm -rf cdn.jsdelivr.net
         find feeds/packages/net/ddns-go -name index.html -exec rm {} \;    
-
         rm -rf feeds/packages/net/frp
         wget -r --no-parent https://cdn.jsdelivr.net/gh/immortalwrt/packages@master/net/frp/
         cp -rf cdn.jsdelivr.net/gh/immortalwrt/packages@master/net/frp feeds/packages/net/frp/
         rm -rf cdn.jsdelivr.net
         find feeds/packages/net/frp -name index.html -exec rm {} \; 
-
         wget "https://www.dropbox.com/scl/fi/uccikbibj772c4sekzbk7/luci-app-turboacc.zip?rlkey=yzhkk0lfzhrthn8hbl1qt8k5j&st=31820445&dl=1" -O luci-app-turboacc.zip
         rm -rf feeds/luci/applications/luci-app-turboacc
         unzip luci-app-turboacc.zip -d feeds/luci/applications/
         rm -rf luci-app-turboacc.zip
-
     - name: Load custom configuration
       run: |
         [ -e files ] && mv files openwrt/files
@@ -155,7 +146,6 @@ jobs:
         chmod +x $DIY_P2_SH
         cd openwrt
         $GITHUB_WORKSPACE/$DIY_P2_SH
-
     - name: SSH connection to Actions
       uses: P3TERX/ssh2actions@v1.0.0
       if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
@@ -169,7 +159,6 @@ jobs:
         mkdir dl
         wget "https://www.dropbox.com/scl/fi/9ts30p2csnlb9imaf8k68/backports-20210222-5.4-qsdk-11.5.0.5.tar.xz?rlkey=sntbyfjgg86gu2uoocgb9ggp1&st=7w81hl56&dl=1" -O dl/backports-20210222-5.4-qsdk-11.5.0.5.tar.xz
         wget "https://www.dropbox.com/scl/fi/gu7ge6jmefn72ttuop1zs/linux-5.4-qsdk-11.5.0.5.tar.xz?rlkey=tdpq0ye35x290frbh7i8uqrm8&st=jjvegqrr&dl=1" -O dl/linux-5.4-qsdk-11.5.0.5.tar.xz
-
     - name: Download package
       id: package
       run: |
@@ -178,7 +167,6 @@ jobs:
         make download -j8
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
-
     - name: Compile the firmware
       id: compile
       run: |
@@ -209,7 +197,6 @@ jobs:
         rm -rf packages
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "status=success" >> $GITHUB_OUTPUT
-
     - name: Upload firmware directory
       uses: actions/upload-artifact@main
       if: steps.organize.outputs.status == 'success' && !cancelled()
@@ -224,9 +211,6 @@ jobs:
         echo "release_tag=RAX3000Q-$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
         touch release.txt
         echo "status=success" >> $GITHUB_OUTPUT
-
-
-
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@main
       with:
